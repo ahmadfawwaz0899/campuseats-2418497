@@ -16,7 +16,9 @@ function App() {
   
   // --- App State ---
   const [selectedVendorId, setSelectedVendorId] = useState(null)
-  const [cart, setCart] = useState([]) // Array of { item, qty }
+  
+  // MATRIC NUMBER ASSIGNMENT: cart now stores Array of { item, qty, note }
+  const [cart, setCart] = useState([]) 
   const [lastOrder, setLastOrder] = useState(null)
 
   // --- Fetching Data (B2) ---
@@ -62,8 +64,8 @@ function App() {
           line.item.id === item.id ? { ...line, qty: line.qty + 1 } : line
         )
       } else {
-        // Add new line
-        return [...prevCart, { item, qty: 1 }]
+        // MATRIC NUMBER ASSIGNMENT: Add new line with an empty note string
+        return [...prevCart, { item, qty: 1, note: '' }]
       }
     })
   }
@@ -81,6 +83,15 @@ function App() {
     })
   }
 
+  // MATRIC NUMBER ASSIGNMENT: New handler to update the note text
+  function handleChangeNote(itemId, newNote) {
+    setCart((prev) => 
+      prev.map((line) => 
+        line.item.id === itemId ? { ...line, note: newNote } : line
+      )
+    )
+  }
+
   function handleRemove(itemId) {
     setCart((prev) => prev.filter((line) => line.item.id !== itemId))
   }
@@ -88,7 +99,10 @@ function App() {
   function handlePlaceOrder(details) {
     // Derive total for the final view (B5)
     const total = cart.reduce((sum, line) => sum + (line.item.price * line.qty), 0)
-    setLastOrder({ ...details, total })
+    
+    // MATRIC NUMBER ASSIGNMENT: Pass the final cart with notes into the last order state
+    setLastOrder({ ...details, total, items: cart }) 
+    
     setCart([]) // Clear the cart
     setView('done')
   }
@@ -100,6 +114,7 @@ function App() {
       <CartPage 
         cart={cart} 
         onChangeQty={handleChangeQty}
+        onChangeNote={handleChangeNote} // MATRIC NUMBER ASSIGNMENT: Passed as a prop
         onRemove={handleRemove} 
         onPlaceOrder={handlePlaceOrder} 
       />
@@ -111,6 +126,20 @@ function App() {
         <p>Name: {lastOrder?.name}</p>
         <p>Mahallah: {lastOrder?.mahallah}</p>
         <p>Pickup time: {lastOrder?.pickupTime}</p>
+        
+        {/* MATRIC NUMBER ASSIGNMENT: Displaying notes in the final summary */}
+        <div style={{ margin: '1rem 0', padding: '1rem', background: '#f8f9fa', borderRadius: '8px' }}>
+          <h4>Order Details:</h4>
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {lastOrder?.items.map((line) => (
+              <li key={line.item.id} style={{ marginBottom: '0.5rem' }}>
+                {line.qty}x {line.item.name}
+                {line.note && <div className="muted" style={{ fontSize: '0.85rem' }}>Note: {line.note}</div>}
+              </li>
+            ))}
+          </ul>
+        </div>
+
         <p className="cart-total">Total: RM {lastOrder?.total.toFixed(2)}</p>
       </div>
     )
